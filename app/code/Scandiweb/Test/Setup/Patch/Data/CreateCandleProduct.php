@@ -1,10 +1,14 @@
 <?php
 /**
- * @category    ExampleSc
- * @package     Example_Migration
- * @author      Ralfs Aizsils <info@scandiweb.com>
- * @copyright   Copyright (c) 2021 Scandiweb, Ltd (https://scandiweb.com)
+ *
+ * @category Scandiweb
+ * @package Scandiweb_Test
+ * @author Meyar Mancy <info@scandiweb.com>
+ * @copyright Copyright (c) 2023 Scandiweb, Inc (https://scandiweb.com)
+ * @license http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
  */
+
+declare(strict_types=1);
 
 namespace Scandiweb\Test\Setup\Patch\Data;
 
@@ -21,6 +25,7 @@ use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Exception\StateException;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
 use Magento\Framework\Validation\ValidationException;
 use Magento\InventoryApi\Api\Data\SourceItemInterface;
@@ -74,6 +79,11 @@ class CreateCandleProduct implements DataPatchInterface
     protected array $sourceItems = [];
 
     /**
+     * @var CategoryLinkManagementInterface
+     */
+    protected CategoryLinkManagementInterface $categoryLink;
+
+    /**
      * Migration patch constructor.
      *
      * @param ProductInterfaceFactory $productInterfaceFactory
@@ -82,7 +92,7 @@ class CreateCandleProduct implements DataPatchInterface
      * @param SourceItemsSaveInterface $sourceItemsSaveInterface
      * @param State $appState
      * @param StoreManagerInterface $storeManager
-		 * @param EavSetup $eavSetup
+     * @param EavSetup $eavSetup
      * @param CategoryLinkManagementInterface $categoryLink
      */
     public function __construct(
@@ -91,22 +101,23 @@ class CreateCandleProduct implements DataPatchInterface
         State $appState,
         StoreManagerInterface $storeManager,
         EavSetup $eavSetup,
-				SourceItemInterfaceFactory $sourceItemFactory,
+        SourceItemInterfaceFactory $sourceItemFactory,
         SourceItemsSaveInterface $sourceItemsSaveInterface,
-				CategoryLinkManagementInterface $categoryLink
+        CategoryLinkManagementInterface $categoryLink
     ) {
         $this->appState = $appState;
         $this->productInterfaceFactory = $productInterfaceFactory;
         $this->productRepository = $productRepository;
-				$this->eavSetup = $eavSetup;
+        $this->eavSetup = $eavSetup;
         $this->storeManager = $storeManager;
         $this->sourceItemFactory = $sourceItemFactory;
         $this->sourceItemsSaveInterface = $sourceItemsSaveInterface;
-				$this->categoryLink = $categoryLink;
+        $this->categoryLink = $categoryLink;
     }
 
     /**
-     * Add new product
+     * @return void
+     * @throws \Exception
      */
     public function apply(): void
     {
@@ -114,11 +125,13 @@ class CreateCandleProduct implements DataPatchInterface
     }
 
     /**
+     * @return void
      * @throws CouldNotSaveException
      * @throws InputException
      * @throws LocalizedException
      * @throws NoSuchEntityException
      * @throws ValidationException
+     * @throws StateException
      */
     public function execute(): void
     {
@@ -130,11 +143,11 @@ class CreateCandleProduct implements DataPatchInterface
 
         $attributeSetId = $this->eavSetup->getAttributeSetId(Product::ENTITY, 'Default');
         $websiteIDs = [$this->storeManager->getStore()->getWebsiteId()];
-				$product->setTypeId(Type::TYPE_SIMPLE)
+        $product->setTypeId(Type::TYPE_SIMPLE)
             ->setWebsiteIds($websiteIDs)
             ->setAttributeSetId($attributeSetId)
             ->setName('Candle')
-						->setUrlKey('candle')
+            ->setUrlKey('candle')
             ->setSku('candle')
             ->setPrice(19.99)
             ->setVisibility(Visibility::VISIBILITY_BOTH)
@@ -151,11 +164,11 @@ class CreateCandleProduct implements DataPatchInterface
 
         $this->sourceItemsSaveInterface->execute($this->sourceItems);
 
-				$this->categoryLink->assignProductToCategories($product->getSku(), [3]);
+        $this->categoryLink->assignProductToCategories($product->getSku(), [3]);
     }
 
     /**
-     * {@inheritDoc}
+     * @return array|string[]
      */
     public static function getDependencies(): array
     {
@@ -163,7 +176,7 @@ class CreateCandleProduct implements DataPatchInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @return array|string[]
      */
     public function getAliases(): array
     {

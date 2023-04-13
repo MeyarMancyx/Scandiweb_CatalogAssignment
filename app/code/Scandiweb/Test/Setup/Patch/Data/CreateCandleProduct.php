@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Scandiweb\Test\Setup\Patch\Data;
 
+use Exception;
 use Magento\Catalog\Api\CategoryLinkManagementInterface;
 use Magento\Catalog\Api\Data\ProductInterfaceFactory;
 use Magento\Catalog\Api\ProductRepositoryInterface;
@@ -117,7 +118,7 @@ class CreateCandleProduct implements DataPatchInterface
 
     /**
      * @return void
-     * @throws \Exception
+     * @throws Exception
      */
     public function apply(): void
     {
